@@ -152,7 +152,7 @@ tfoot td:first-child{text-align:center;font-family:'Plus Jakarta Sans',sans-seri
     <div class="pill">Fixed EMI <strong>₹10,000</strong></div>
     <div class="pill">Rate <strong>1.5% p.m. Simple</strong></div>
     <div class="pill">Tenure <strong>41 months</strong></div>
-    <div class="pill">From <strong>Jan 2026</strong></div>
+    <div class="pill">From <strong>01 Feb 2026</strong></div>
   </div>
 </header>
 
@@ -173,9 +173,10 @@ tfoot td:first-child{text-align:center;font-family:'Plus Jakarta Sans',sans-seri
         <div class="hint">Simple interest, no compounding</div>
       </div>
       <div class="field">
-        <label>Start Date</label>
-        <input type="date" id="startDate" value="2025-12-31"/>
-        <div class="hint">First EMI due: 31 Jan 2026</div>
+        <label>First EMI Due</label>
+        <div class="fixed-val">01 Feb 2026</div>
+        <input type="hidden" id="startDate" value="2025-12-31"/>
+        <div class="hint">Due on 1st of every month</div>
       </div>
       <div class="field">
         <label>Fixed EMI (₹)</label>
@@ -301,7 +302,7 @@ tfoot td:first-child{text-align:center;font-family:'Plus Jakarta Sans',sans-seri
 
   <div class="note">
     <strong>⚠ Simple Interest Only:</strong> Interest always accrues on outstanding <em>principal</em> only — never on unpaid interest. No compounding on arrears.
-    &nbsp;|&nbsp; <strong>Tenure of 41 months</strong> is auto-calculated: ₹10,000 EMI at 1.5% p.m. simple interest on outstanding principal; final payment in month 41 is the residual balance only (≈ ₹1,549).
+    &nbsp;|&nbsp; <strong>Tenure of 41 months</strong> is auto-calculated: ₹10,000 EMI at 1.5% p.m. simple interest on outstanding principal; final payment (month 41, due 01-Jun-2029) is the residual balance only (≈ ₹1,549).
     &nbsp;|&nbsp; Use <strong>Cancel a Payment</strong> to correct erroneous entries — the ledger recalculates from that month onwards.
   </div>
 
@@ -314,6 +315,20 @@ const FIXED_EMI = 10000;
 // ── STATE ──────────────────────────────────────────────────────────────────
 // rows[i] = { txnNo, payDate, amtPaid, cancelled, cancelReason }
 let rows = [];
+
+// ── PERSISTENCE (localStorage) ─────────────────────────────────────────────
+const STORAGE_KEY = 'loanledger_rows_v1';
+
+function saveToStorage() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(rows)); } catch(e) {}
+}
+
+function loadFromStorage() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) { rows = JSON.parse(raw); }
+  } catch(e) { rows = []; }
+}
 
 // ── CONFIG ─────────────────────────────────────────────────────────────────
 function getConfig() {
@@ -339,10 +354,13 @@ function calcTenure(P, r, emi) {
   return m;
 }
 
+// EMI due dates are always the 1st of each month, starting 01-Feb-2026
+// month index 1 => 01-Feb-2026, 2 => 01-Mar-2026, etc.
 function addMonths(dateStr, months) {
-  const d = new Date(dateStr + 'T00:00:00');
-  d.setMonth(d.getMonth() + months);
-  return d;
+  const base = new Date('2026-01-01T00:00:00');
+  base.setMonth(base.getMonth() + months);
+  base.setDate(1);
+  return base;
 }
 
 function fmtD(d) {
@@ -369,7 +387,7 @@ function compute() {
   let op = P;
 
   for (let i = 0; i < n; i++) {
-    const dueDate = addMonths(sd, i + 1);
+    const dueDate = addMonths('', i + 1);
     const row     = rows[i];
     const isFinal = (i === n - 1);
 
@@ -407,16 +425,11 @@ function compute() {
 // or -1 if not found. Matches on year+month (day-tolerant ±3 days).
 function dateToMonthIdx(dateStr) {
   if (!dateStr) return -1;
-  const { n, sd } = getConfig();
+  const { n } = getConfig();
   const picked = new Date(dateStr + 'T00:00:00');
+  // Due dates are always 1st of month — match on year+month
   for (let i = 0; i < n; i++) {
-    const due = addMonths(sd, i + 1);
-    const diffDays = Math.abs((due - picked) / 86400000);
-    if (diffDays <= 3) return i;           // within 3 days → same instalment
-  }
-  // Fallback: match by same year+month
-  for (let i = 0; i < n; i++) {
-    const due = addMonths(sd, i + 1);
+    const due = addMonths('', i + 1);
     if (due.getFullYear() === picked.getFullYear() &&
         due.getMonth()    === picked.getMonth()) return i;
   }
@@ -428,7 +441,7 @@ function buildDueDateMap() {
   const { n, sd } = getConfig();
   const map = {};
   for (let i = 0; i < n; i++) {
-    const due = addMonths(sd, i + 1);
+    const due = addMonths('', i + 1);
     map[due.toISOString().slice(0, 10)] = i;
   }
   return map;
@@ -437,8 +450,8 @@ function buildDueDateMap() {
 // Set min/max on both date pickers to the loan's date range
 function setupDatePickers() {
   const { n, sd } = getConfig();
-  const first = addMonths(sd, 1).toISOString().slice(0, 10);
-  const last  = addMonths(sd, n).toISOString().slice(0, 10);
+  const first = addMonths('', 1).toISOString().slice(0, 10);
+  const last  = addMonths('', n).toISOString().slice(0, 10);
   document.getElementById('entryMonth').min = first;
   document.getElementById('entryMonth').max = last;
   document.getElementById('cancelMonth').min = first;
@@ -447,7 +460,7 @@ function setupDatePickers() {
   // Default entry picker to first unpaid month's due date
   const firstUnpaid = rows.findIndex(r => !(parseFloat(r.amtPaid) > 0) && !r.cancelled);
   const defaultIdx  = firstUnpaid >= 0 ? firstUnpaid : 0;
-  const defaultDue  = addMonths(sd, defaultIdx + 1).toISOString().slice(0, 10);
+  const defaultDue  = addMonths('', defaultIdx + 1).toISOString().slice(0, 10);
   if (!document.getElementById('entryMonth').value) {
     document.getElementById('entryMonth').value = defaultDue;
   }
@@ -479,7 +492,7 @@ function updateCancelHint() {
   }
   const r = rows[idx];
   const { sd } = getConfig();
-  const due = addMonths(sd, idx + 1);
+  const due = addMonths('', idx + 1);
   hint.style.color = '';
   if (r.cancelled) {
     hint.textContent = `Month ${idx+1} — already cancelled`;
@@ -519,7 +532,7 @@ function recordPayment() {
   document.getElementById('entryAmt').value  = '';
 
   const { sd } = getConfig();
-  const due = addMonths(sd, idx + 1);
+  const due = addMonths('', idx + 1);
   showMsg('entryMsg','success', `✓ Month ${idx+1} (due ${fmtD(due)}) recorded — ₹${amt.toLocaleString('en-IN')} paid.`);
 
   render();
@@ -527,7 +540,7 @@ function recordPayment() {
   // Advance entry picker to next unpaid month's due date
   const nextUnpaid = rows.findIndex((r, i) => i > idx && !(parseFloat(r.amtPaid) > 0) && !r.cancelled);
   if (nextUnpaid >= 0) {
-    document.getElementById('entryMonth').value = addMonths(sd, nextUnpaid + 1).toISOString().slice(0, 10);
+    document.getElementById('entryMonth').value = addMonths('', nextUnpaid + 1).toISOString().slice(0, 10);
     updateEmiHint();
   }
 }
@@ -545,7 +558,7 @@ function cancelPayment() {
   if (!(parseFloat(r.amtPaid) > 0)) { showMsg('cancelMsg','error',`Month ${idx+1} has no payment recorded — nothing to cancel.`); return; }
 
   const { sd } = getConfig();
-  const due = addMonths(sd, idx + 1);
+  const due = addMonths('', idx + 1);
   if (!confirm(`Cancel payment for Month ${idx+1} (due ${fmtD(due)}, ₹${parseFloat(r.amtPaid).toLocaleString('en-IN')})?\nThe ledger will recalculate from this month onwards.`)) return;
 
   rows[idx].cancelled    = true;
@@ -563,7 +576,7 @@ function cancelPayment() {
 // Also allow inline cancel from table
 function inlineCancel(idx) {
   const { sd } = getConfig();
-  const due = addMonths(sd, idx + 1);
+  const due = addMonths('', idx + 1);
   if (!confirm(`Cancel payment for Month ${idx+1} (due ${fmtD(due)})?`)) return;
   rows[idx].cancelled = true;
   rows[idx].cancelReason = 'Cancelled via ledger';
@@ -587,6 +600,7 @@ function render() {
   const schedule = compute();
   renderKPIs(schedule, cfg);
   renderTable(schedule);
+  saveToStorage();
 }
 
 function renderKPIs(schedule, cfg) {
@@ -739,17 +753,19 @@ function exportCSV() {
 
 // ── RESET ──────────────────────────────────────────────────────────────────
 function clearAll() {
-  if (!confirm('Reset all payment entries? This cannot be undone.')) return;
+  if (!confirm('Reset ALL payment entries? This will permanently delete all recorded payments and cannot be undone.')) return;
   rows.forEach(r => { r.txnNo=''; r.payDate=''; r.amtPaid=''; r.cancelled=false; r.cancelReason=''; });
+  try { localStorage.removeItem(STORAGE_KEY); } catch(e) {}
   render();
 }
 
 // ── LISTENERS ──────────────────────────────────────────────────────────────
-['principal','rate','startDate'].forEach(id => {
-  document.getElementById(id).addEventListener('input', () => { rows=[]; render(); });
+['principal','rate'].forEach(id => {
+  document.getElementById(id).addEventListener('input', () => { render(); });
 });
 
 // ── BOOT ───────────────────────────────────────────────────────────────────
+loadFromStorage();   // restore saved payment data
 render();
 </script>
 </body>
