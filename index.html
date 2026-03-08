@@ -210,8 +210,9 @@ tfoot td:first-child{text-align:center;font-family:'Plus Jakarta Sans',sans-seri
     </div>
     <div class="entry-form">
       <div class="field">
-        <label>Select Month</label>
-        <select id="entryMonth"></select>
+        <label>EMI Due Date</label>
+        <input type="date" id="entryMonth" oninput="updateEmiHint()"/>
+        <div class="hint" id="emiHintEntry">Pick the EMI due date from the calendar</div>
       </div>
       <div class="field">
         <label>Transaction No.</label>
@@ -224,7 +225,6 @@ tfoot td:first-child{text-align:center;font-family:'Plus Jakarta Sans',sans-seri
       <div class="field">
         <label>Amount Paid (₹)</label>
         <input type="number" id="entryAmt" placeholder="10000" min="0"/>
-        <div class="hint" id="emiHintEntry"></div>
       </div>
       <div class="field">
         <label>&nbsp;</label>
@@ -242,8 +242,9 @@ tfoot td:first-child{text-align:center;font-family:'Plus Jakarta Sans',sans-seri
     </div>
     <div class="cancel-form">
       <div class="field">
-        <label>Select Month to Cancel</label>
-        <select id="cancelMonth"></select>
+        <label>EMI Due Date to Cancel</label>
+        <input type="date" id="cancelMonth" oninput="updateCancelHint()"/>
+        <div class="hint" id="cancelHint">Pick the due date of the payment to cancel</div>
       </div>
       <div class="field">
         <label>Reason (optional)</label>
@@ -401,72 +402,116 @@ function compute() {
   return out;
 }
 
-// ── DROPDOWNS ──────────────────────────────────────────────────────────────
-function populateDropdowns() {
+// ── DATE → MONTH INDEX RESOLUTION ─────────────────────────────────────────
+// Returns 0-based index of the schedule month whose due date matches dateStr,
+// or -1 if not found. Matches on year+month (day-tolerant ±3 days).
+function dateToMonthIdx(dateStr) {
+  if (!dateStr) return -1;
   const { n, sd } = getConfig();
-  const entSel = document.getElementById('entryMonth');
-  const canSel = document.getElementById('cancelMonth');
-  const prevE  = entSel.value;
-  const prevC  = canSel.value;
-
-  entSel.innerHTML = '';
-  canSel.innerHTML = '<option value="">— select a month —</option>';
-
+  const picked = new Date(dateStr + 'T00:00:00');
   for (let i = 0; i < n; i++) {
     const due = addMonths(sd, i + 1);
-    const r   = rows[i];
-    const hasPay = !r.cancelled && parseFloat(r.amtPaid) > 0;
-    const isCancelled = r.cancelled;
-
-    // Entry dropdown: all months
-    const optE = document.createElement('option');
-    optE.value = i;
-    optE.textContent = `Month ${i+1} — ${fmtD(due)}${hasPay ? ' ✓' : isCancelled ? ' ✕' : ''}`;
-    entSel.appendChild(optE);
-
-    // Cancel dropdown: only months with a payment recorded
-    if (hasPay) {
-      const optC = document.createElement('option');
-      optC.value = i;
-      optC.textContent = `Month ${i+1} — ${fmtD(due)} (₹${parseFloat(r.amtPaid).toLocaleString('en-IN')})`;
-      canSel.appendChild(optC);
-    }
+    const diffDays = Math.abs((due - picked) / 86400000);
+    if (diffDays <= 3) return i;           // within 3 days → same instalment
   }
-
-  // Restore or default
-  if (prevE !== '' && parseInt(prevE) < n) entSel.value = prevE;
-  else {
-    const firstUnpaid = rows.findIndex(r => !(parseFloat(r.amtPaid) > 0) && !r.cancelled);
-    entSel.value = firstUnpaid >= 0 ? firstUnpaid : 0;
+  // Fallback: match by same year+month
+  for (let i = 0; i < n; i++) {
+    const due = addMonths(sd, i + 1);
+    if (due.getFullYear() === picked.getFullYear() &&
+        due.getMonth()    === picked.getMonth()) return i;
   }
-  if (prevC !== '' && parseInt(prevC) < n) canSel.value = prevC;
+  return -1;
+}
 
-  // Update EMI hint for selected month
-  updateEmiHint();
+// Build a lookup: "YYYY-MM-DD" → index, for setting min/max on pickers
+function buildDueDateMap() {
+  const { n, sd } = getConfig();
+  const map = {};
+  for (let i = 0; i < n; i++) {
+    const due = addMonths(sd, i + 1);
+    map[due.toISOString().slice(0, 10)] = i;
+  }
+  return map;
+}
+
+// Set min/max on both date pickers to the loan's date range
+function setupDatePickers() {
+  const { n, sd } = getConfig();
+  const first = addMonths(sd, 1).toISOString().slice(0, 10);
+  const last  = addMonths(sd, n).toISOString().slice(0, 10);
+  document.getElementById('entryMonth').min = first;
+  document.getElementById('entryMonth').max = last;
+  document.getElementById('cancelMonth').min = first;
+  document.getElementById('cancelMonth').max = last;
+
+  // Default entry picker to first unpaid month's due date
+  const firstUnpaid = rows.findIndex(r => !(parseFloat(r.amtPaid) > 0) && !r.cancelled);
+  const defaultIdx  = firstUnpaid >= 0 ? firstUnpaid : 0;
+  const defaultDue  = addMonths(sd, defaultIdx + 1).toISOString().slice(0, 10);
+  if (!document.getElementById('entryMonth').value) {
+    document.getElementById('entryMonth').value = defaultDue;
+  }
 }
 
 function updateEmiHint() {
-  const idx = parseInt(document.getElementById('entryMonth').value);
-  const { n } = getConfig();
+  const dateVal = document.getElementById('entryMonth').value;
+  const hint    = document.getElementById('emiHintEntry');
+  const idx     = dateToMonthIdx(dateVal);
+  if (idx < 0) {
+    hint.textContent = dateVal ? '⚠ Date does not match any EMI due date' : 'Pick the EMI due date from the calendar';
+    hint.style.color = dateVal ? 'var(--red)' : '';
+    return;
+  }
   const schedule = compute();
-  if (!schedule[idx]) return;
   const s = schedule[idx];
-  const hint = document.getElementById('emiHintEntry');
-  hint.textContent = `EMI due: ₹${s.emiDue.toLocaleString('en-IN')}${s.isFinal ? ' (final — residual)' : ''}`;
+  hint.style.color = '';
+  hint.textContent = `Month ${s.month} — EMI due: ₹${s.emiDue.toLocaleString('en-IN')}${s.isFinal ? ' (final — residual amount)' : ''}${s.paid > 0 && !s.cancelled ? ' · already recorded ✓' : ''}`;
+}
+
+function updateCancelHint() {
+  const dateVal = document.getElementById('cancelMonth').value;
+  const hint    = document.getElementById('cancelHint');
+  const idx     = dateToMonthIdx(dateVal);
+  if (idx < 0) {
+    hint.textContent = dateVal ? '⚠ Date does not match any EMI due date' : 'Pick the due date of the payment to cancel';
+    hint.style.color = dateVal ? 'var(--red)' : '';
+    return;
+  }
+  const r = rows[idx];
+  const { sd } = getConfig();
+  const due = addMonths(sd, idx + 1);
+  hint.style.color = '';
+  if (r.cancelled) {
+    hint.textContent = `Month ${idx+1} — already cancelled`;
+    hint.style.color = 'var(--ink4)';
+  } else if (parseFloat(r.amtPaid) > 0) {
+    hint.textContent = `Month ${idx+1} (due ${fmtD(due)}) — recorded ₹${parseFloat(r.amtPaid).toLocaleString('en-IN')} · will be cancelled`;
+    hint.style.color = 'var(--red)';
+  } else {
+    hint.textContent = `Month ${idx+1} — no payment recorded for this month`;
+    hint.style.color = 'var(--ink4)';
+  }
+}
+
+function populateDropdowns() {
+  setupDatePickers();
+  updateEmiHint();
+  updateCancelHint();
 }
 
 // ── RECORD PAYMENT ─────────────────────────────────────────────────────────
 function recordPayment() {
-  const idx     = parseInt(document.getElementById('entryMonth').value);
-  const txnNo   = document.getElementById('entryTxn').value.trim();
-  const payDate = document.getElementById('entryDate').value;
-  const amtRaw  = document.getElementById('entryAmt').value.trim();
-  const amt     = parseFloat(amtRaw);
+  const dueDateVal = document.getElementById('entryMonth').value;
+  const txnNo      = document.getElementById('entryTxn').value.trim();
+  const payDate    = document.getElementById('entryDate').value;
+  const amtRaw     = document.getElementById('entryAmt').value.trim();
+  const amt        = parseFloat(amtRaw);
+  const idx        = dateToMonthIdx(dueDateVal);
 
-  if (!payDate)                    { showMsg('entryMsg','error','Please enter a payment date.'); return; }
-  if (!amtRaw||isNaN(amt)||amt<=0) { showMsg('entryMsg','error','Please enter a valid amount.'); return; }
+  if (!dueDateVal || idx < 0) { showMsg('entryMsg','error','Please select a valid EMI due date from the calendar.'); return; }
+  if (!payDate)                { showMsg('entryMsg','error','Please enter the payment date.'); return; }
+  if (!amtRaw||isNaN(amt)||amt<=0) { showMsg('entryMsg','error','Please enter a valid amount paid.'); return; }
 
-  // If month was previously cancelled, uncancel it
   rows[idx] = { txnNo, payDate, amtPaid: amt, cancelled: false, cancelReason: '' };
 
   document.getElementById('entryTxn').value  = '';
@@ -479,26 +524,38 @@ function recordPayment() {
 
   render();
 
-  // Advance to next unpaid
-  const nextUnpaid = rows.findIndex((r,i) => i > idx && !(parseFloat(r.amtPaid)>0) && !r.cancelled);
-  if (nextUnpaid >= 0) document.getElementById('entryMonth').value = nextUnpaid;
+  // Advance entry picker to next unpaid month's due date
+  const nextUnpaid = rows.findIndex((r, i) => i > idx && !(parseFloat(r.amtPaid) > 0) && !r.cancelled);
+  if (nextUnpaid >= 0) {
+    document.getElementById('entryMonth').value = addMonths(sd, nextUnpaid + 1).toISOString().slice(0, 10);
+    updateEmiHint();
+  }
 }
 
 // ── CANCEL PAYMENT ─────────────────────────────────────────────────────────
 function cancelPayment() {
-  const idxStr = document.getElementById('cancelMonth').value;
-  if (!idxStr) { showMsg('cancelMsg','error','Please select a month to cancel.'); return; }
-  const idx    = parseInt(idxStr);
-  const reason = document.getElementById('cancelReason').value.trim();
+  const dueDateVal = document.getElementById('cancelMonth').value;
+  const reason     = document.getElementById('cancelReason').value.trim();
+  const idx        = dateToMonthIdx(dueDateVal);
 
-  if (!confirm(`Cancel payment for Month ${idx+1}? The ledger will recalculate from this month onwards.`)) return;
+  if (!dueDateVal || idx < 0) { showMsg('cancelMsg','error','Please select a valid EMI due date from the calendar.'); return; }
+
+  const r = rows[idx];
+  if (r.cancelled)              { showMsg('cancelMsg','error',`Month ${idx+1} is already cancelled.`); return; }
+  if (!(parseFloat(r.amtPaid) > 0)) { showMsg('cancelMsg','error',`Month ${idx+1} has no payment recorded — nothing to cancel.`); return; }
+
+  const { sd } = getConfig();
+  const due = addMonths(sd, idx + 1);
+  if (!confirm(`Cancel payment for Month ${idx+1} (due ${fmtD(due)}, ₹${parseFloat(r.amtPaid).toLocaleString('en-IN')})?\nThe ledger will recalculate from this month onwards.`)) return;
 
   rows[idx].cancelled    = true;
   rows[idx].cancelReason = reason || 'Entry cancelled';
 
   document.getElementById('cancelReason').value = '';
-  const { sd } = getConfig();
-  const due = addMonths(sd, idx + 1);
+  document.getElementById('cancelMonth').value  = '';
+  document.getElementById('cancelHint').textContent = 'Pick the due date of the payment to cancel';
+  document.getElementById('cancelHint').style.color = '';
+
   showMsg('cancelMsg','info', `✕ Month ${idx+1} (due ${fmtD(due)}) payment cancelled. Ledger updated.`);
   render();
 }
@@ -510,7 +567,7 @@ function inlineCancel(idx) {
   if (!confirm(`Cancel payment for Month ${idx+1} (due ${fmtD(due)})?`)) return;
   rows[idx].cancelled = true;
   rows[idx].cancelReason = 'Cancelled via ledger';
-  showMsg('cancelMsg','info', `✕ Month ${idx+1} payment cancelled.`);
+  showMsg('cancelMsg','info', `✕ Month ${idx+1} payment cancelled. Ledger updated.`);
   render();
 }
 
@@ -691,7 +748,6 @@ function clearAll() {
 ['principal','rate','startDate'].forEach(id => {
   document.getElementById(id).addEventListener('input', () => { rows=[]; render(); });
 });
-document.getElementById('entryMonth').addEventListener('change', updateEmiHint);
 
 // ── BOOT ───────────────────────────────────────────────────────────────────
 render();
