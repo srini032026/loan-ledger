@@ -1,9 +1,10 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>LoanLedger — Repayment Tracker</title>
+<title>LoanLedger</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -19,129 +20,133 @@
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--paper);color:var(--ink);min-height:100vh;font-size:14px}
 
-header{background:var(--ink);padding:0 40px;display:flex;align-items:center;justify-content:space-between;height:64px;position:sticky;top:0;z-index:100;box-shadow:0 2px 20px rgba(0,0,0,.4)}
-.logo{font-family:'DM Serif Display',serif;font-size:22px;color:var(--gold);letter-spacing:.5px}
-.logo span{color:var(--white);font-style:italic}
+header{background:var(–ink);padding:0 32px;display:flex;align-items:center;justify-content:space-between;height:64px;position:sticky;top:0;z-index:100;box-shadow:0 2px 20px rgba(0,0,0,.4)}
+.logo{font-family:‘DM Serif Display’,serif;font-size:22px;color:var(–gold)}
+.logo span{color:var(–white);font-style:italic}
 .header-pills{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.pill{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:4px 13px;font-size:11px;font-family:'DM Mono',monospace;color:var(--ink4)}
-.pill strong{color:var(--gold-lt)}
+.pill{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:4px 13px;font-size:11px;font-family:‘DM Mono’,monospace;color:var(–ink4)}
+.pill strong{color:var(–gold-lt)}
+.save-indicator{font-size:11px;font-family:‘DM Mono’,monospace;color:#4ade80;opacity:0;transition:opacity .4s}
+.save-indicator.show{opacity:1}
 
-.page{max-width:1340px;margin:0 auto;padding:28px 24px 80px}
+.page{max-width:1340px;margin:0 auto;padding:24px 20px 80px}
 
 /* CONFIG */
-.config-bar{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:20px 28px;margin-bottom:24px;box-shadow:0 2px 12px var(--shadow)}
-.config-bar h3{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:var(--ink4);margin-bottom:14px}
-.config-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px 20px}
-.field label{display:block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--ink3);margin-bottom:5px}
-.field input{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:7px;font-family:'DM Mono',monospace;font-size:13px;color:var(--blue);background:var(--cream);outline:none;transition:border-color .15s,box-shadow .15s}
-.field input:focus{border-color:var(--gold);box-shadow:0 0 0 3px var(--gold-pale)}
-.fixed-val{padding:9px 12px;border:1.5px solid var(--blue-lt);border-radius:7px;font-family:'DM Mono',monospace;font-size:14px;font-weight:700;color:var(--blue);background:var(--blue-lt)}
-.hint{font-size:10px;color:var(--ink4);margin-top:4px}
+.config-bar{background:var(–white);border:1px solid var(–border);border-radius:var(–radius);padding:18px 24px;margin-bottom:20px;box-shadow:0 2px 12px var(–shadow)}
+.config-bar h3{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:var(–ink4);margin-bottom:12px}
+.config-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:12px 18px}
+.field label{display:block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(–ink3);margin-bottom:4px}
+.field input[type=number]{width:100%;padding:8px 11px;border:1.5px solid var(–border);border-radius:7px;font-family:‘DM Mono’,monospace;font-size:13px;color:var(–blue);background:var(–cream);outline:none;transition:border-color .15s,box-shadow .15s}
+.field input[type=number]:focus{border-color:var(–gold);box-shadow:0 0 0 3px var(–gold-pale)}
+.fixed-val{padding:8px 11px;border:1.5px solid var(–blue-lt);border-radius:7px;font-family:‘DM Mono’,monospace;font-size:13px;font-weight:700;color:var(–blue);background:var(–blue-lt)}
+.hint{font-size:10px;color:var(–ink4);margin-top:3px}
 
 /* KPIs */
-.kpi-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(178px,1fr));gap:14px;margin-bottom:24px}
-.kpi{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;box-shadow:0 2px 8px var(--shadow);transition:transform .15s}
+.kpi-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:12px;margin-bottom:20px}
+.kpi{background:var(–white);border:1px solid var(–border);border-radius:var(–radius);padding:16px 18px;box-shadow:0 2px 8px var(–shadow);transition:transform .15s}
 .kpi:hover{transform:translateY(-2px)}
-.kpi-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:var(--ink4);margin-bottom:8px}
-.kpi-val{font-family:'DM Serif Display',serif;font-size:24px;color:var(--ink);line-height:1}
-.kpi-sub{font-size:10px;color:var(--ink4);margin-top:5px}
-.kpi.accent{background:var(--ink);border-color:var(--ink)}
-.kpi.accent .kpi-label{color:var(--gold)}
-.kpi.accent .kpi-val{color:var(--white)}
+.kpi-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:var(–ink4);margin-bottom:7px}
+.kpi-val{font-family:‘DM Serif Display’,serif;font-size:23px;color:var(–ink);line-height:1}
+.kpi-sub{font-size:10px;color:var(–ink4);margin-top:4px}
+.kpi.accent{background:var(–ink);border-color:var(–ink)}
+.kpi.accent .kpi-label{color:var(–gold)}
+.kpi.accent .kpi-val{color:var(–white)}
 .kpi.accent .kpi-sub{color:#6b7280}
-.kpi.ok .kpi-val{color:var(--green)}
-.kpi.warn .kpi-val{color:var(--red)}
+.kpi.ok .kpi-val{color:var(–green)}
+.kpi.warn .kpi-val{color:var(–red)}
 
 /* PROGRESS */
-.prog-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:18px 24px;margin-bottom:24px;box-shadow:0 2px 8px var(--shadow)}
-.prog-row{display:flex;justify-content:space-between;margin-bottom:9px}
-.prog-row span{font-size:12px;font-weight:600;color:var(--ink3)}
-.bar-track{background:var(--border);border-radius:999px;height:9px;overflow:hidden}
-.bar-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,var(--green),#3cb371);transition:width .5s cubic-bezier(.4,0,.2,1)}
+.prog-card{background:var(–white);border:1px solid var(–border);border-radius:var(–radius);padding:16px 22px;margin-bottom:20px;box-shadow:0 2px 8px var(–shadow)}
+.prog-row{display:flex;justify-content:space-between;margin-bottom:8px}
+.prog-row span{font-size:12px;font-weight:600;color:var(–ink3)}
+.bar-track{background:var(–border);border-radius:999px;height:8px;overflow:hidden}
+.bar-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,var(–green),#3cb371);transition:width .5s cubic-bezier(.4,0,.2,1)}
 
 /* ENTRY PANEL */
-.entry-panel{background:var(--white);border:2px solid var(--gold-lt);border-radius:var(--radius);padding:24px 28px;margin-bottom:12px;box-shadow:0 4px 24px rgba(200,146,42,.1)}
-.entry-hdr{display:flex;align-items:center;gap:12px;margin-bottom:18px}
-.entry-hdr h2{font-family:'DM Serif Display',serif;font-size:20px;color:var(--ink)}
-.entry-badge{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;padding:3px 10px;border-radius:999px}
-.badge-add{background:var(--gold);color:var(--white)}
-.entry-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px 18px;align-items:end}
-.entry-form .field input,
-.entry-form .field select{background:var(--gold-pale);border-color:var(--gold-lt);width:100%;padding:9px 12px;border:1.5px solid var(--gold-lt);border-radius:7px;font-family:'DM Mono',monospace;font-size:12px;color:var(--blue);outline:none;transition:border-color .15s,box-shadow .15s}
-.entry-form .field input:focus,
-.entry-form .field select:focus{border-color:var(--gold);box-shadow:0 0 0 3px var(--gold-pale)}
-.btn-record{width:100%;padding:10px 14px;background:var(--gold);color:var(--white);border:none;border-radius:8px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:background .15s;height:38px}
+.entry-panel{background:var(–white);border:2px solid var(–gold-lt);border-radius:var(–radius);padding:20px 24px;margin-bottom:12px;box-shadow:0 4px 20px rgba(200,146,42,.1)}
+.panel-hdr{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.panel-hdr h2{font-family:‘DM Serif Display’,serif;font-size:18px;color:var(–ink)}
+.badge{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;padding:3px 9px;border-radius:999px}
+.badge-add{background:var(–gold);color:var(–white)}
+.badge-cancel{background:var(–red-lt);color:var(–red)}
+.entry-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:12px 16px;align-items:end}
+.entry-form .field input[type=date],
+.entry-form .field input[type=text],
+.entry-form .field input[type=number]{
+width:100%;padding:8px 11px;border:1.5px solid var(–gold-lt);border-radius:7px;
+font-family:‘DM Mono’,monospace;font-size:12px;color:var(–blue);
+background:var(–gold-pale);outline:none;transition:border-color .15s,box-shadow .15s}
+.entry-form .field input:focus{border-color:var(–gold);box-shadow:0 0 0 3px var(–gold-pale)}
+.btn-record{width:100%;padding:9px 14px;background:var(–gold);color:var(–white);border:none;border-radius:7px;font-family:‘Plus Jakarta Sans’,sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:background .15s;height:36px}
 .btn-record:hover{background:#b07a1c}
 
 /* CANCEL PANEL */
-.cancel-panel{background:var(--white);border:2px solid #e8a09a;border-radius:var(--radius);padding:20px 28px;margin-bottom:24px;box-shadow:0 4px 20px rgba(192,57,43,.07)}
-.cancel-hdr{display:flex;align-items:center;gap:12px;margin-bottom:16px}
-.cancel-hdr h2{font-family:'DM Serif Display',serif;font-size:18px;color:var(--red)}
-.badge-cancel{background:var(--red-lt);color:var(--red);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;padding:3px 10px;border-radius:999px}
-.cancel-form{display:grid;grid-template-columns:1fr 1fr auto;gap:14px 18px;align-items:end}
-.cancel-form .field input,
-.cancel-form .field select{background:#fff7f7;border-color:#e8a09a;width:100%;padding:9px 12px;border:1.5px solid #e8a09a;border-radius:7px;font-family:'DM Mono',monospace;font-size:12px;color:var(--red);outline:none}
-.cancel-form .field select{color:var(--ink2)}
-.btn-cancel-pay{padding:10px 22px;background:var(--red);color:var(--white);border:none;border-radius:8px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:background .15s;height:38px;white-space:nowrap}
+.cancel-panel{background:var(–white);border:2px solid #e8a09a;border-radius:var(–radius);padding:20px 24px;margin-bottom:20px;box-shadow:0 4px 16px rgba(192,57,43,.07)}
+.cancel-panel .panel-hdr h2{color:var(–red)}
+.cancel-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:12px 16px;align-items:end}
+.cancel-form .field input[type=date],
+.cancel-form .field input[type=text]{
+width:100%;padding:8px 11px;border:1.5px solid #e8a09a;border-radius:7px;
+font-family:‘DM Mono’,monospace;font-size:12px;color:var(–ink2);
+background:#fff7f7;outline:none}
+.btn-cancel-pay{width:100%;padding:9px 14px;background:var(–red);color:var(–white);border:none;border-radius:7px;font-family:‘Plus Jakarta Sans’,sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:background .15s;height:36px}
 .btn-cancel-pay:hover{background:#a93226}
 
-.entry-msg{font-size:12px;margin-top:10px;padding:9px 14px;border-radius:7px;display:none;font-weight:500}
-.entry-msg.success{background:var(--green-lt);color:var(--green);display:block}
-.entry-msg.error{background:var(--red-lt);color:var(--red);display:block}
-.entry-msg.info{background:var(--blue-lt);color:var(--blue);display:block}
+.msg{font-size:12px;margin-top:10px;padding:8px 12px;border-radius:6px;display:none;font-weight:500}
+.msg.ok{background:var(–green-lt);color:var(–green);display:block}
+.msg.err{background:var(–red-lt);color:var(–red);display:block}
+.msg.info{background:var(–blue-lt);color:var(–blue);display:block}
 
 /* ACTIONS */
-.actions{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
-.btn{padding:9px 20px;border-radius:8px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .15s;display:flex;align-items:center;gap:6px}
-.btn-dark{background:var(--ink);color:var(--white)}
-.btn-dark:hover{background:var(--ink2)}
-.btn-ghost{background:transparent;color:var(--ink2);border:1.5px solid var(--border)}
-.btn-ghost:hover{background:var(--cream)}
+.actions{display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap}
+.btn{padding:8px 18px;border-radius:7px;font-family:‘Plus Jakarta Sans’,sans-serif;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .15s;display:flex;align-items:center;gap:6px}
+.btn-dark{background:var(–ink);color:var(–white)}
+.btn-dark:hover{background:var(–ink2)}
+.btn-ghost{background:transparent;color:var(–ink2);border:1.5px solid var(–border)}
+.btn-ghost:hover{background:var(–cream)}
 
 /* TABLE */
-.table-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:0 2px 12px var(--shadow)}
-.table-hdr{padding:16px 24px;background:var(--ink);display:flex;align-items:center;justify-content:space-between}
-.table-hdr h2{font-family:'DM Serif Display',serif;font-size:18px;color:var(--white)}
-.legend{display:flex;gap:14px;font-size:11px;color:var(--ink4)}
-.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:4px;vertical-align:middle}
+.table-card{background:var(–white);border:1px solid var(–border);border-radius:var(–radius);overflow:hidden;box-shadow:0 2px 12px var(–shadow)}
+.table-hdr{padding:14px 22px;background:var(–ink);display:flex;align-items:center;justify-content:space-between}
+.table-hdr h2{font-family:‘DM Serif Display’,serif;font-size:17px;color:var(–white)}
+.legend{display:flex;gap:12px;font-size:10px;color:var(–ink4)}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:3px;vertical-align:middle}
 .tbl-wrap{overflow-x:auto}
 table{width:100%;border-collapse:collapse;font-size:12px}
-thead th{background:#f0ede8;padding:9px 11px;text-align:right;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--ink3);border-bottom:2px solid var(--border);white-space:nowrap}
+thead th{background:#f0ede8;padding:8px 10px;text-align:right;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(–ink3);border-bottom:2px solid var(–border);white-space:nowrap}
 thead th:first-child,thead th:nth-child(2){text-align:center}
-thead th.ec{color:var(--gold);background:#faf6ed}
-thead th.last{text-align:center}
+thead th.ec{color:var(–gold);background:#faf6ed}
+thead th.tc{text-align:center}
 tbody tr{border-bottom:1px solid #f0ede8;transition:background .1s}
 tbody tr:hover{background:#faf8f4}
-tbody tr.row-paid{background:#f0fbf5}
-tbody tr.row-missed{background:#fdf2f1}
-tbody tr.row-partial{background:#fffbf0}
-tbody tr.row-cancelled{background:#f7f3ff;opacity:.75}
-tbody td{padding:8px 11px;text-align:right;font-family:'DM Mono',monospace;font-size:12px;color:var(--ink2);vertical-align:middle}
-tbody td:first-child{text-align:center;font-weight:700;color:var(--ink3);font-family:'Plus Jakarta Sans',sans-serif}
+tbody tr.r-paid{background:#f0fbf5}
+tbody tr.r-missed{background:#fdf2f1}
+tbody tr.r-partial{background:#fffbf0}
+tbody tr.r-cancelled{background:#f7f3ff;opacity:.72}
+tbody td{padding:7px 10px;text-align:right;font-family:‘DM Mono’,monospace;font-size:11.5px;color:var(–ink2);vertical-align:middle}
+tbody td:first-child{text-align:center;font-weight:700;color:var(–ink3);font-family:‘Plus Jakarta Sans’,sans-serif;font-size:12px}
 tbody td:nth-child(2){text-align:center;font-size:11px}
-tbody td:nth-child(3),tbody td:nth-child(4),tbody td:nth-child(6){text-align:left;font-size:11px}
-td.outstanding{font-weight:700;color:var(--ink)}
-td.acc{color:var(--red);font-weight:600}
-td.final-pay{color:var(--blue);font-weight:700}
-.zero{color:var(--ink4)}
-.badge{display:inline-block;padding:2px 7px;border-radius:999px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px}
-.bp{background:var(--green-lt);color:var(--green)}
-.bpa{background:#fff3d0;color:#7a5000}
-.bm{background:var(--red-lt);color:var(--red)}
-.bf{background:#f0ede8;color:var(--ink4)}
-.bc{background:#ede9fe;color:#5b21b6}
-.bf2{background:var(--blue-lt);color:var(--blue)}
-tbody td.cancel-cell{text-align:center}
-.btn-inline-cancel{background:none;border:none;cursor:pointer;font-size:13px;opacity:.5;transition:opacity .15s;padding:2px 6px;border-radius:4px}
-.btn-inline-cancel:hover{opacity:1;background:var(--red-lt)}
-tfoot td{background:var(--ink);color:var(--white);font-family:'DM Mono',monospace;font-size:12px;font-weight:600;padding:10px 11px;text-align:right;border-top:2px solid var(--gold)}
-tfoot td:first-child{text-align:center;font-family:'Plus Jakarta Sans',sans-serif;font-weight:700}
+tbody td.lft{text-align:left;font-size:11px}
+td.op{font-weight:700;color:var(–ink)}
+td.acc{color:var(–red);font-weight:600}
+.z{color:var(–ink4)}
+.sbadge{display:inline-block;padding:2px 6px;border-radius:999px;font-size:9px;font-weight:700;text-transform:uppercase}
+.s-paid{background:var(–green-lt);color:var(–green)}
+.s-part{background:#fff3d0;color:#7a5000}
+.s-miss{background:var(–red-lt);color:var(–red)}
+.s-future{background:#f0ede8;color:var(–ink4)}
+.s-cancel{background:#ede9fe;color:#5b21b6}
+.btn-x{background:none;border:none;cursor:pointer;font-size:12px;opacity:.45;transition:opacity .15s;padding:2px 5px;border-radius:4px}
+.btn-x:hover{opacity:1;background:var(–red-lt)}
+tfoot td{background:var(–ink);color:var(–white);font-family:‘DM Mono’,monospace;font-size:12px;font-weight:600;padding:9px 10px;text-align:right;border-top:2px solid var(–gold)}
+tfoot td:first-child{text-align:center;font-family:‘Plus Jakarta Sans’,sans-serif}
 
-.note{background:#fff8ec;border:1px solid var(--gold-lt);border-radius:8px;padding:11px 18px;font-size:11px;color:var(--ink3);margin-top:12px;line-height:1.6}
-.note strong{color:var(--gold)}
+.note{background:#fff8ec;border:1px solid var(–gold-lt);border-radius:8px;padding:10px 16px;font-size:11px;color:var(–ink3);margin-top:10px;line-height:1.7}
+.note strong{color:var(–gold)}
 
-@media(max-width:768px){header{padding:0 14px}.header-pills{display:none}.page{padding:14px 10px 60px}.entry-panel,.cancel-panel{padding:16px 14px}.cancel-form{grid-template-columns:1fr}}
+@media(max-width:768px){header{padding:0 12px}.header-pills{display:none}.page{padding:12px 8px 60px}}
 </style>
+
 </head>
 <body>
 
@@ -149,123 +154,129 @@ tfoot td:first-child{text-align:center;font-family:'Plus Jakarta Sans',sans-seri
   <div class="logo">Loan<span>Ledger</span></div>
   <div class="header-pills">
     <div class="pill">Principal <strong>₹3,00,000</strong></div>
-    <div class="pill">Fixed EMI <strong>₹10,000</strong></div>
-    <div class="pill">Rate <strong>1.5% p.m. Simple</strong></div>
+    <div class="pill">EMI <strong>₹10,000 / month</strong></div>
+    <div class="pill">Rate <strong>1.5% p.m. simple</strong></div>
     <div class="pill">Tenure <strong>41 months</strong></div>
-    <div class="pill">From <strong>01 Feb 2026</strong></div>
+    <div class="pill">From <strong>01-Feb-2026</strong></div>
   </div>
+  <div class="save-indicator" id="saveIndicator">✓ Saved</div>
 </header>
 
 <div class="page">
 
   <!-- CONFIG -->
+
   <div class="config-bar">
     <h3>⚙ Loan Parameters</h3>
     <div class="config-grid">
       <div class="field">
         <label>Principal (₹)</label>
-        <input type="number" id="principal" value="300000" min="1"/>
-        <div class="hint">Disbursed amount</div>
+        <input type="number" id="cfgPrincipal" value="300000" min="1"/>
       </div>
       <div class="field">
         <label>Monthly Rate (%)</label>
-        <input type="number" id="rate" value="1.5" step="0.01" min="0"/>
-        <div class="hint">Simple interest, no compounding</div>
-      </div>
-      <div class="field">
-        <label>First EMI Due</label>
-        <div class="fixed-val">01 Feb 2026</div>
-        <input type="hidden" id="startDate" value="2025-12-31"/>
-        <div class="hint">Due on 1st of every month</div>
+        <input type="number" id="cfgRate" value="1.5" step="0.01" min="0"/>
+        <div class="hint">Simple interest — no compounding</div>
       </div>
       <div class="field">
         <label>Fixed EMI (₹)</label>
         <div class="fixed-val">₹10,000</div>
-        <div class="hint">Fixed — as agreed</div>
+        <div class="hint">Fixed as agreed</div>
       </div>
       <div class="field">
-        <label>Tenure (Months)</label>
-        <div class="fixed-val" id="tenureDisplay">41</div>
-        <div class="hint">Auto-calculated to full repayment</div>
+        <label>First EMI Due</label>
+        <div class="fixed-val">01-Feb-2026</div>
+        <div class="hint">Always 1st of every month</div>
+      </div>
+      <div class="field">
+        <label>Tenure (months)</label>
+        <div class="fixed-val" id="tenureDisp">41</div>
+        <div class="hint">Auto-calculated</div>
       </div>
     </div>
   </div>
 
   <!-- KPIs -->
+
   <div class="kpi-strip" id="kpiStrip"></div>
 
   <!-- PROGRESS -->
+
   <div class="prog-card">
     <div class="prog-row">
       <span>Principal Repaid</span>
-      <span id="progressPct">0%</span>
+      <span id="progPct">0%</span>
     </div>
-    <div class="bar-track"><div class="bar-fill" id="progressBar" style="width:0%"></div></div>
+    <div class="bar-track"><div class="bar-fill" id="progBar" style="width:0%"></div></div>
   </div>
 
-  <!-- RECORD PAYMENT PANEL -->
+  <!-- RECORD PAYMENT -->
+
   <div class="entry-panel">
-    <div class="entry-hdr">
+    <div class="panel-hdr">
       <h2>Record a Payment</h2>
-      <span class="entry-badge badge-add">New Entry</span>
+      <span class="badge badge-add">New Entry</span>
     </div>
     <div class="entry-form">
       <div class="field">
         <label>EMI Due Date</label>
-        <input type="date" id="entryMonth" oninput="updateEmiHint()"/>
-        <div class="hint" id="emiHintEntry">Pick the EMI due date from the calendar</div>
+        <input type="date" id="fDueDate" oninput="onDueDateChange()"/>
+        <div class="hint" id="hintDue">Select the EMI due date (1st of any month)</div>
       </div>
       <div class="field">
         <label>Transaction No.</label>
-        <input type="text" id="entryTxn" placeholder="e.g. TXN-2026-001"/>
+        <input type="text" id="fTxn" placeholder="TXN-2026-001"/>
       </div>
       <div class="field">
         <label>Payment Date</label>
-        <input type="date" id="entryDate"/>
+        <input type="date" id="fPayDate"/>
       </div>
       <div class="field">
         <label>Amount Paid (₹)</label>
-        <input type="number" id="entryAmt" placeholder="10000" min="0"/>
+        <input type="number" id="fAmt" placeholder="10000" min="0"/>
       </div>
       <div class="field">
         <label>&nbsp;</label>
         <button class="btn-record" onclick="recordPayment()">✓ Record Payment</button>
       </div>
     </div>
-    <div class="entry-msg" id="entryMsg"></div>
+    <div class="msg" id="msgEntry"></div>
   </div>
 
-  <!-- CANCEL PAYMENT PANEL -->
+  <!-- CANCEL PAYMENT -->
+
   <div class="cancel-panel">
-    <div class="cancel-hdr">
-      <h2>Cancel a Payment Entry</h2>
-      <span class="entry-badge badge-cancel">Correction</span>
+    <div class="panel-hdr">
+      <h2>Cancel a Payment</h2>
+      <span class="badge badge-cancel">Correction</span>
     </div>
     <div class="cancel-form">
       <div class="field">
         <label>EMI Due Date to Cancel</label>
-        <input type="date" id="cancelMonth" oninput="updateCancelHint()"/>
-        <div class="hint" id="cancelHint">Pick the due date of the payment to cancel</div>
+        <input type="date" id="cDueDate" oninput="onCancelDateChange()"/>
+        <div class="hint" id="hintCancel">Select the due date of the payment to cancel</div>
       </div>
       <div class="field">
         <label>Reason (optional)</label>
-        <input type="text" id="cancelReason" placeholder="e.g. Wrong amount entered"/>
+        <input type="text" id="cReason" placeholder="e.g. Wrong amount entered"/>
       </div>
       <div class="field">
         <label>&nbsp;</label>
         <button class="btn-cancel-pay" onclick="cancelPayment()">✕ Cancel Payment</button>
       </div>
     </div>
-    <div class="entry-msg" id="cancelMsg"></div>
+    <div class="msg" id="msgCancel"></div>
   </div>
 
   <!-- ACTIONS -->
+
   <div class="actions">
     <button class="btn btn-dark" onclick="exportCSV()">⬇ Download Ledger (CSV)</button>
-    <button class="btn btn-ghost" onclick="clearAll()">🗑 Reset All Payments</button>
+    <button class="btn btn-ghost" onclick="resetAll()">🗑 Reset All Payments</button>
   </div>
 
   <!-- TABLE -->
+
   <div class="table-card">
     <div class="table-hdr">
       <h2>Repayment Ledger</h2>
@@ -288,349 +299,343 @@ tfoot td:first-child{text-align:center;font-family:'Plus Jakarta Sans',sans-seri
             <th class="ec">Amt Paid (₹)</th>
             <th>Principal Paid (₹)</th>
             <th>Interest Paid (₹)</th>
-            <th>Outstanding Principal (₹)</th>
+            <th>Outstanding (₹)</th>
             <th>Int. Accrued if Unpaid (₹)</th>
             <th>Status</th>
-            <th class="last">Action</th>
+            <th class="tc">✕</th>
           </tr>
         </thead>
-        <tbody id="tableBody"></tbody>
-        <tfoot id="tableFoot"></tfoot>
+        <tbody id="tBody"></tbody>
+        <tfoot id="tFoot"></tfoot>
       </table>
     </div>
   </div>
 
   <div class="note">
-    <strong>⚠ Simple Interest Only:</strong> Interest always accrues on outstanding <em>principal</em> only — never on unpaid interest. No compounding on arrears.
-    &nbsp;|&nbsp; <strong>Tenure of 41 months</strong> is auto-calculated: ₹10,000 EMI at 1.5% p.m. simple interest on outstanding principal; final payment (month 41, due 01-Jun-2029) is the residual balance only (≈ ₹1,549).
-    &nbsp;|&nbsp; Use <strong>Cancel a Payment</strong> to correct erroneous entries — the ledger recalculates from that month onwards.
+    <strong>⚠ Simple Interest Only:</strong> Interest accrues on outstanding principal only — never on unpaid interest. No compounding.
+    &nbsp;·&nbsp; <strong>Tenure 41 months</strong>: regular EMI ₹10,000 for months 1–40; final payment month 41 (01-Jun-2029) is the residual ≈ ₹1,549.
+    &nbsp;·&nbsp; All entries are <strong>auto-saved</strong> in your browser — data persists after closing.
   </div>
 
 </div>
 
 <script>
-// ── CONSTANTS ──────────────────────────────────────────────────────────────
-const FIXED_EMI = 10000;
+/* ═══════════════════════════════════════════════════════════
+   CONSTANTS
+═══════════════════════════════════════════════════════════ */
+const EMI        = 10000;
+const STORE_KEY  = 'loanledger_v2';
 
-// ── STATE ──────────────────────────────────────────────────────────────────
-// rows[i] = { txnNo, payDate, amtPaid, cancelled, cancelReason }
-let rows = [];
-
-// ── PERSISTENCE (localStorage) ─────────────────────────────────────────────
-const STORAGE_KEY = 'loanledger_rows_v1';
-
-function saveToStorage() {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(rows)); } catch(e) {}
+// Fixed schedule: Month 1 = 01-Feb-2026, Month 2 = 01-Mar-2026, …
+// monthDue(1) => Date object for 01-Feb-2026
+function monthDue(m) {
+  // m=1 → Feb 2026, m=2 → Mar 2026, etc.
+  return new Date(2026, 1 + (m - 1), 1); // months are 0-indexed in JS
 }
 
-function loadFromStorage() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) { rows = JSON.parse(raw); }
-  } catch(e) { rows = []; }
+// Convert a Date to "YYYY-MM-DD" string (for input[type=date] value)
+function toISO(d) {
+  const y = d.getFullYear();
+  const mo = String(d.getMonth() + 1).padStart(2, '0');
+  return `${y}-${mo}-01`;
 }
 
-// ── CONFIG ─────────────────────────────────────────────────────────────────
-function getConfig() {
-  const P  = parseFloat(document.getElementById('principal').value) || 300000;
-  const r  = parseFloat(document.getElementById('rate').value) / 100 || 0.015;
-  const sd = document.getElementById('startDate').value || '2025-12-31';
-  // Auto-calculate tenure: simulate until balance clears
-  const n  = calcTenure(P, r, FIXED_EMI);
-  document.getElementById('tenureDisplay').textContent = n;
-  return { P, r, n, sd, emi: FIXED_EMI };
-}
-
-function calcTenure(P, r, emi) {
-  let op = P, m = 0;
-  while (op > 0.005 && m < 1200) {
-    m++;
-    const intDue = op * r;
-    if (emi >= op + intDue) { op = 0; break; }
-    const prinPaid = emi - intDue;
-    if (prinPaid <= 0) break; // EMI too small
-    op -= prinPaid;
-  }
-  return m;
-}
-
-// EMI due dates are always the 1st of each month, starting 01-Feb-2026
-// month index 1 => 01-Feb-2026, 2 => 01-Mar-2026, etc.
-function addMonths(dateStr, months) {
-  const base = new Date('2026-01-01T00:00:00');
-  base.setMonth(base.getMonth() + months);
-  base.setDate(1);
-  return base;
-}
-
+// Format a Date for display
 function fmtD(d) {
   return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
-function inr(v, cls) {
-  const s = '₹' + Math.round(v).toLocaleString('en-IN');
-  return cls ? `<span class="${cls}">${s}</span>` : s;
+// Format currency
+function inr(v) {
+  return '₹' + Math.round(v).toLocaleString('en-IN');
 }
 
-// ── INIT rows ──────────────────────────────────────────────────────────────
-function initRows() {
-  const { n } = getConfig();
+/* ═══════════════════════════════════════════════════════════
+   CONFIG
+═══════════════════════════════════════════════════════════ */
+function getCfg() {
+  const P = parseFloat(document.getElementById('cfgPrincipal').value) || 300000;
+  const r = parseFloat(document.getElementById('cfgRate').value) / 100 || 0.015;
+  const n = calcTenure(P, r, EMI);
+  document.getElementById('tenureDisp').textContent = n;
+  return { P, r, n };
+}
+
+function calcTenure(P, r, emi) {
+  let op = P, m = 0;
+  while (op > 0.005 && m < 600) {
+    m++;
+    const intDue = op * r;
+    if (emi >= op + intDue) { op = 0; break; }
+    op -= (emi - intDue);
+  }
+  return m;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   STATE  — rows[i] = {txnNo, payDate, amtPaid, cancelled, cancelReason}
+═══════════════════════════════════════════════════════════ */
+let rows = [];
+
+function ensureRows(n) {
   while (rows.length < n) rows.push({ txnNo:'', payDate:'', amtPaid:'', cancelled:false, cancelReason:'' });
-  if (rows.length > n) rows = rows.slice(0, n);
 }
 
-// ── COMPUTE schedule ───────────────────────────────────────────────────────
+/* ═══════════════════════════════════════════════════════════
+   LOCALSTORAGE  — save / load
+═══════════════════════════════════════════════════════════ */
+function save() {
+  try {
+    localStorage.setItem(STORE_KEY, JSON.stringify(rows));
+    flashSaved();
+  } catch(e) { console.warn('localStorage unavailable', e); }
+}
+
+function load() {
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) rows = parsed;
+    }
+  } catch(e) { rows = []; }
+}
+
+function flashSaved() {
+  const el = document.getElementById('saveIndicator');
+  el.classList.add('show');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove('show'), 2000);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   COMPUTE full schedule
+═══════════════════════════════════════════════════════════ */
 function compute() {
-  const { P, r, n, sd } = getConfig();
-  initRows();
+  const { P, r, n } = getCfg();
+  ensureRows(n);
   const out = [];
   let op = P;
 
   for (let i = 0; i < n; i++) {
-    const dueDate = addMonths('', i + 1);
+    const due     = monthDue(i + 1);
     const row     = rows[i];
     const isFinal = (i === n - 1);
-
-    // If cancelled, treat as not paid
-    const paid = (!row.cancelled && parseFloat(row.amtPaid) > 0) ? parseFloat(row.amtPaid) : 0;
-
+    const paid    = (!row.cancelled && parseFloat(row.amtPaid) > 0) ? parseFloat(row.amtPaid) : 0;
     const intDue  = op * r;
-    // For final month, EMI due = outstanding + interest
-    const emiDue  = isFinal ? Math.round((op + intDue) * 100) / 100 : FIXED_EMI;
-
+    const emiDue  = isFinal ? Math.round((op + intDue) * 100) / 100 : EMI;
     const prinP   = paid > 0 ? Math.max(0, paid - intDue) : 0;
-    const intP    = paid > 0 ? Math.min(paid, intDue)     : 0;
+    const intP    = paid > 0 ? Math.min(paid, intDue) : 0;
     const newOp   = Math.max(0, op - prinP);
     const intAcc  = paid < emiDue ? newOp * r : 0;
 
     let status;
-    if (row.cancelled)          status = 'cancelled';
-    else if (paid >= emiDue)    status = 'paid';
-    else if (paid > 0)          status = 'partial';
-    else if (dueDate < new Date()) status = 'missed';
-    else                        status = 'future';
+    if      (row.cancelled)          status = 'cancelled';
+    else if (paid >= emiDue)         status = 'paid';
+    else if (paid > 0)               status = 'partial';
+    else if (due < new Date())       status = 'missed';
+    else                             status = 'future';
 
-    out.push({
-      month: i+1, dueDate, txnNo: row.txnNo, payDate: row.payDate,
-      emiDue, paid, prinP, intP, op: newOp, intAcc, status,
-      isFinal, cancelled: row.cancelled, cancelReason: row.cancelReason
-    });
+    out.push({ idx: i, month: i+1, due, txnNo: row.txnNo, payDate: row.payDate,
+               emiDue, paid, prinP, intP, op: newOp, intAcc,
+               status, isFinal, cancelled: row.cancelled });
     op = newOp;
   }
   return out;
 }
 
-// ── DATE → MONTH INDEX RESOLUTION ─────────────────────────────────────────
-// Returns 0-based index of the schedule month whose due date matches dateStr,
-// or -1 if not found. Matches on year+month (day-tolerant ±3 days).
-function dateToMonthIdx(dateStr) {
+/* ═══════════════════════════════════════════════════════════
+   DATE PICKER HELPERS
+   Given a date string "YYYY-MM-DD", find which month index it maps to.
+   Due dates are always 1st of the month, so we match year+month only.
+═══════════════════════════════════════════════════════════ */
+function dateStrToIdx(dateStr) {
   if (!dateStr) return -1;
-  const { n } = getConfig();
-  const picked = new Date(dateStr + 'T00:00:00');
-  // Due dates are always 1st of month — match on year+month
+  // dateStr is "YYYY-MM-DD"
+  const parts = dateStr.split('-');
+  const yr = parseInt(parts[0]);
+  const mo = parseInt(parts[1]) - 1; // 0-indexed month
+  const { n } = getCfg();
   for (let i = 0; i < n; i++) {
-    const due = addMonths('', i + 1);
-    if (due.getFullYear() === picked.getFullYear() &&
-        due.getMonth()    === picked.getMonth()) return i;
+    const due = monthDue(i + 1);
+    if (due.getFullYear() === yr && due.getMonth() === mo) return i;
   }
   return -1;
 }
 
-// Build a lookup: "YYYY-MM-DD" → index, for setting min/max on pickers
-function buildDueDateMap() {
-  const { n, sd } = getConfig();
-  const map = {};
-  for (let i = 0; i < n; i++) {
-    const due = addMonths('', i + 1);
-    map[due.toISOString().slice(0, 10)] = i;
-  }
-  return map;
-}
+function setupPickers() {
+  const { n } = getCfg();
+  const first = toISO(monthDue(1));
+  const last  = toISO(monthDue(n));
+  document.getElementById('fDueDate').min = first;
+  document.getElementById('fDueDate').max = last;
+  document.getElementById('cDueDate').min = first;
+  document.getElementById('cDueDate').max = last;
 
-// Set min/max on both date pickers to the loan's date range
-function setupDatePickers() {
-  const { n, sd } = getConfig();
-  const first = addMonths('', 1).toISOString().slice(0, 10);
-  const last  = addMonths('', n).toISOString().slice(0, 10);
-  document.getElementById('entryMonth').min = first;
-  document.getElementById('entryMonth').max = last;
-  document.getElementById('cancelMonth').min = first;
-  document.getElementById('cancelMonth').max = last;
-
-  // Default entry picker to first unpaid month's due date
-  const firstUnpaid = rows.findIndex(r => !(parseFloat(r.amtPaid) > 0) && !r.cancelled);
-  const defaultIdx  = firstUnpaid >= 0 ? firstUnpaid : 0;
-  const defaultDue  = addMonths('', defaultIdx + 1).toISOString().slice(0, 10);
-  if (!document.getElementById('entryMonth').value) {
-    document.getElementById('entryMonth').value = defaultDue;
+  // Default entry picker to first unpaid month
+  const fp = document.getElementById('fDueDate');
+  if (!fp.value) {
+    const firstUnpaid = rows.findIndex(r => !(parseFloat(r.amtPaid) > 0) && !r.cancelled);
+    fp.value = toISO(monthDue((firstUnpaid >= 0 ? firstUnpaid : 0) + 1));
+    onDueDateChange();
   }
 }
 
-function updateEmiHint() {
-  const dateVal = document.getElementById('entryMonth').value;
-  const hint    = document.getElementById('emiHintEntry');
-  const idx     = dateToMonthIdx(dateVal);
+function onDueDateChange() {
+  const val = document.getElementById('fDueDate').value;
+  const hint = document.getElementById('hintDue');
+  const idx = dateStrToIdx(val);
   if (idx < 0) {
-    hint.textContent = dateVal ? '⚠ Date does not match any EMI due date' : 'Pick the EMI due date from the calendar';
-    hint.style.color = dateVal ? 'var(--red)' : '';
+    hint.textContent = val ? '⚠ Not a valid EMI due date — pick the 1st of a month' : 'Select the EMI due date (1st of any month Feb 2026 onwards)';
+    hint.style.color = val ? 'var(--red)' : '';
     return;
   }
-  const schedule = compute();
-  const s = schedule[idx];
   hint.style.color = '';
-  hint.textContent = `Month ${s.month} — EMI due: ₹${s.emiDue.toLocaleString('en-IN')}${s.isFinal ? ' (final — residual amount)' : ''}${s.paid > 0 && !s.cancelled ? ' · already recorded ✓' : ''}`;
+  const sched = compute();
+  const s = sched[idx];
+  const already = s.paid > 0 && !s.cancelled ? ` · already recorded ✓` : '';
+  hint.textContent = `Month ${s.month} (${fmtD(s.due)}) — EMI due: ${inr(s.emiDue)}${s.isFinal ? ' (final)' : ''}${already}`;
 }
 
-function updateCancelHint() {
-  const dateVal = document.getElementById('cancelMonth').value;
-  const hint    = document.getElementById('cancelHint');
-  const idx     = dateToMonthIdx(dateVal);
+function onCancelDateChange() {
+  const val = document.getElementById('cDueDate').value;
+  const hint = document.getElementById('hintCancel');
+  const idx = dateStrToIdx(val);
   if (idx < 0) {
-    hint.textContent = dateVal ? '⚠ Date does not match any EMI due date' : 'Pick the due date of the payment to cancel';
-    hint.style.color = dateVal ? 'var(--red)' : '';
+    hint.textContent = val ? '⚠ Not a valid EMI due date' : 'Select the due date of the payment to cancel';
+    hint.style.color = val ? 'var(--red)' : '';
     return;
   }
+  hint.style.color = '';
   const r = rows[idx];
-  const { sd } = getConfig();
-  const due = addMonths('', idx + 1);
-  hint.style.color = '';
   if (r.cancelled) {
     hint.textContent = `Month ${idx+1} — already cancelled`;
     hint.style.color = 'var(--ink4)';
   } else if (parseFloat(r.amtPaid) > 0) {
-    hint.textContent = `Month ${idx+1} (due ${fmtD(due)}) — recorded ₹${parseFloat(r.amtPaid).toLocaleString('en-IN')} · will be cancelled`;
+    hint.textContent = `Month ${idx+1} — recorded ₹${parseFloat(r.amtPaid).toLocaleString('en-IN')} · will be cancelled`;
     hint.style.color = 'var(--red)';
   } else {
-    hint.textContent = `Month ${idx+1} — no payment recorded for this month`;
+    hint.textContent = `Month ${idx+1} — no payment on record`;
     hint.style.color = 'var(--ink4)';
   }
 }
 
-function populateDropdowns() {
-  setupDatePickers();
-  updateEmiHint();
-  updateCancelHint();
-}
-
-// ── RECORD PAYMENT ─────────────────────────────────────────────────────────
+/* ═══════════════════════════════════════════════════════════
+   RECORD PAYMENT
+═══════════════════════════════════════════════════════════ */
 function recordPayment() {
-  const dueDateVal = document.getElementById('entryMonth').value;
-  const txnNo      = document.getElementById('entryTxn').value.trim();
-  const payDate    = document.getElementById('entryDate').value;
-  const amtRaw     = document.getElementById('entryAmt').value.trim();
-  const amt        = parseFloat(amtRaw);
-  const idx        = dateToMonthIdx(dueDateVal);
+  const dueVal  = document.getElementById('fDueDate').value;
+  const txnNo   = document.getElementById('fTxn').value.trim();
+  const payDate = document.getElementById('fPayDate').value;
+  const amtStr  = document.getElementById('fAmt').value.trim();
+  const amt     = parseFloat(amtStr);
+  const idx     = dateStrToIdx(dueVal);
 
-  if (!dueDateVal || idx < 0) { showMsg('entryMsg','error','Please select a valid EMI due date from the calendar.'); return; }
-  if (!payDate)                { showMsg('entryMsg','error','Please enter the payment date.'); return; }
-  if (!amtRaw||isNaN(amt)||amt<=0) { showMsg('entryMsg','error','Please enter a valid amount paid.'); return; }
+  if (idx < 0)                          { showMsg('msgEntry','err','Select a valid EMI due date first.'); return; }
+  if (!payDate)                         { showMsg('msgEntry','err','Enter the payment date.'); return; }
+  if (!amtStr || isNaN(amt) || amt <= 0){ showMsg('msgEntry','err','Enter a valid amount paid.'); return; }
 
   rows[idx] = { txnNo, payDate, amtPaid: amt, cancelled: false, cancelReason: '' };
+  save();
 
-  document.getElementById('entryTxn').value  = '';
-  document.getElementById('entryDate').value = '';
-  document.getElementById('entryAmt').value  = '';
+  // clear fields
+  document.getElementById('fTxn').value     = '';
+  document.getElementById('fPayDate').value = '';
+  document.getElementById('fAmt').value     = '';
 
-  const { sd } = getConfig();
-  const due = addMonths('', idx + 1);
-  showMsg('entryMsg','success', `✓ Month ${idx+1} (due ${fmtD(due)}) recorded — ₹${amt.toLocaleString('en-IN')} paid.`);
-
+  showMsg('msgEntry','ok', `✓ Month ${idx+1} (${fmtD(monthDue(idx+1))}) — ₹${amt.toLocaleString('en-IN')} recorded.`);
   render();
 
-  // Advance entry picker to next unpaid month's due date
-  const nextUnpaid = rows.findIndex((r, i) => i > idx && !(parseFloat(r.amtPaid) > 0) && !r.cancelled);
-  if (nextUnpaid >= 0) {
-    document.getElementById('entryMonth').value = addMonths('', nextUnpaid + 1).toISOString().slice(0, 10);
-    updateEmiHint();
+  // advance picker to next unpaid
+  const next = rows.findIndex((r,i) => i > idx && !r.cancelled && !(parseFloat(r.amtPaid) > 0));
+  if (next >= 0) {
+    document.getElementById('fDueDate').value = toISO(monthDue(next + 1));
+    onDueDateChange();
   }
 }
 
-// ── CANCEL PAYMENT ─────────────────────────────────────────────────────────
+/* ═══════════════════════════════════════════════════════════
+   CANCEL PAYMENT
+═══════════════════════════════════════════════════════════ */
 function cancelPayment() {
-  const dueDateVal = document.getElementById('cancelMonth').value;
-  const reason     = document.getElementById('cancelReason').value.trim();
-  const idx        = dateToMonthIdx(dueDateVal);
+  const dueVal = document.getElementById('cDueDate').value;
+  const reason = document.getElementById('cReason').value.trim();
+  const idx    = dateStrToIdx(dueVal);
 
-  if (!dueDateVal || idx < 0) { showMsg('cancelMsg','error','Please select a valid EMI due date from the calendar.'); return; }
-
+  if (idx < 0) { showMsg('msgCancel','err','Select a valid EMI due date first.'); return; }
   const r = rows[idx];
-  if (r.cancelled)              { showMsg('cancelMsg','error',`Month ${idx+1} is already cancelled.`); return; }
-  if (!(parseFloat(r.amtPaid) > 0)) { showMsg('cancelMsg','error',`Month ${idx+1} has no payment recorded — nothing to cancel.`); return; }
+  if (r.cancelled)                     { showMsg('msgCancel','err',`Month ${idx+1} is already cancelled.`); return; }
+  if (!(parseFloat(r.amtPaid) > 0))   { showMsg('msgCancel','err',`Month ${idx+1} has no payment to cancel.`); return; }
 
-  const { sd } = getConfig();
-  const due = addMonths('', idx + 1);
-  if (!confirm(`Cancel payment for Month ${idx+1} (due ${fmtD(due)}, ₹${parseFloat(r.amtPaid).toLocaleString('en-IN')})?\nThe ledger will recalculate from this month onwards.`)) return;
+  if (!confirm(`Cancel payment for Month ${idx+1} (${fmtD(monthDue(idx+1))}, ₹${parseFloat(r.amtPaid).toLocaleString('en-IN')})?\nThe ledger recalculates from this month onwards.`)) return;
 
   rows[idx].cancelled    = true;
   rows[idx].cancelReason = reason || 'Entry cancelled';
+  save();
 
-  document.getElementById('cancelReason').value = '';
-  document.getElementById('cancelMonth').value  = '';
-  document.getElementById('cancelHint').textContent = 'Pick the due date of the payment to cancel';
-  document.getElementById('cancelHint').style.color = '';
+  document.getElementById('cDueDate').value = '';
+  document.getElementById('cReason').value  = '';
+  document.getElementById('hintCancel').textContent = 'Select the due date of the payment to cancel';
+  document.getElementById('hintCancel').style.color = '';
 
-  showMsg('cancelMsg','info', `✕ Month ${idx+1} (due ${fmtD(due)}) payment cancelled. Ledger updated.`);
+  showMsg('msgCancel','info', `✕ Month ${idx+1} payment cancelled. Ledger updated.`);
   render();
 }
 
-// Also allow inline cancel from table
+// Inline cancel from table row
 function inlineCancel(idx) {
-  const { sd } = getConfig();
-  const due = addMonths('', idx + 1);
-  if (!confirm(`Cancel payment for Month ${idx+1} (due ${fmtD(due)})?`)) return;
-  rows[idx].cancelled = true;
-  rows[idx].cancelReason = 'Cancelled via ledger';
-  showMsg('cancelMsg','info', `✕ Month ${idx+1} payment cancelled. Ledger updated.`);
+  const r = rows[idx];
+  if (!confirm(`Cancel payment for Month ${idx+1} (${fmtD(monthDue(idx+1))}, ₹${parseFloat(r.amtPaid).toLocaleString('en-IN')})?`)) return;
+  rows[idx].cancelled    = true;
+  rows[idx].cancelReason = 'Cancelled via table';
+  save();
+  showMsg('msgCancel','info', `✕ Month ${idx+1} payment cancelled.`);
   render();
 }
 
+/* ═══════════════════════════════════════════════════════════
+   SHOW MESSAGE
+═══════════════════════════════════════════════════════════ */
 function showMsg(id, type, text) {
   const el = document.getElementById(id);
-  el.className = 'entry-msg ' + type;
+  el.className = 'msg ' + type;
   el.textContent = text;
   clearTimeout(el._t);
-  el._t = setTimeout(() => { el.className = 'entry-msg'; }, 6000);
+  el._t = setTimeout(() => { el.className = 'msg'; }, 6000);
 }
 
-// ── RENDER ─────────────────────────────────────────────────────────────────
+/* ═══════════════════════════════════════════════════════════
+   RENDER
+═══════════════════════════════════════════════════════════ */
 function render() {
-  const cfg = getConfig();
-  initRows();
-  populateDropdowns();
+  const cfg      = getCfg();
   const schedule = compute();
+  setupPickers();
   renderKPIs(schedule, cfg);
-  renderTable(schedule);
-  saveToStorage();
+  renderTable(schedule, cfg);
 }
 
-function renderKPIs(schedule, cfg) {
-  const latestOp  = schedule[schedule.length - 1].op;
-  const totalPrin = schedule.reduce((a,s) => a + s.prinP, 0);
-  const totalInt  = schedule.reduce((a,s) => a + s.intP,  0);
-  const fullPaid  = schedule.filter(s => s.status==='paid').length;
+function renderKPIs(sch, cfg) {
+  const latestOp  = sch[sch.length - 1].op;
+  const totalPrin = sch.reduce((a,s) => a + s.prinP, 0);
+  const totalInt  = sch.reduce((a,s) => a + s.intP,  0);
+  const fullPaid  = sch.filter(s => s.status === 'paid').length;
   const pct       = cfg.P > 0 ? Math.min(100, Math.round(totalPrin / cfg.P * 100)) : 0;
 
-  document.getElementById('progressBar').style.width  = pct + '%';
-  document.getElementById('progressPct').textContent  = pct + '% of principal repaid';
+  document.getElementById('progBar').style.width = pct + '%';
+  document.getElementById('progPct').textContent = pct + '% of principal repaid';
 
   const kpis = [
-    { label:'Latest Outstanding Principal',
-      val: inr(latestOp), sub:'Current balance after all payments',
-      cls: latestOp<=0 ? 'ok' : '' },
-    { label:'Total EMIs Paid (Full)',
-      val: fullPaid,
-      sub:`of ${cfg.n} months · ₹${(fullPaid*FIXED_EMI).toLocaleString('en-IN')} total`,
-      cls:'' },
-    { label:'Total Principal Portion Paid',
-      val: inr(totalPrin),
-      sub:`${pct}% of ₹${cfg.P.toLocaleString('en-IN')}`,
-      cls: pct===100?'ok':'' },
-    { label:'Total Interest Portion Paid',
-      val: inr(totalInt),
+    { label:'Latest Outstanding Principal', val:inr(latestOp),
+      sub:'Current balance after all payments', cls: latestOp<=0?'ok':'' },
+    { label:'Total EMIs Paid (Full)',        val:fullPaid,
+      sub:`of ${cfg.n} months scheduled`, cls:'' },
+    { label:'Principal Portion Paid',        val:inr(totalPrin),
+      sub:`${pct}% of ${inr(cfg.P)}`, cls: pct===100?'ok':'' },
+    { label:'Interest Portion Paid',         val:inr(totalInt),
       sub:'Simple interest — no compounding', cls:'' },
-    { label:'Amount to Close Loan',
-      val: inr(latestOp),
-      sub:'Outstanding principal to be paid now', cls:'accent' },
+    { label:'Amount to Close Loan',          val:inr(latestOp),
+      sub:'Outstanding principal to pay now', cls:'accent' },
   ];
 
   document.getElementById('kpiStrip').innerHTML = kpis.map(k =>
@@ -641,59 +646,54 @@ function renderKPIs(schedule, cfg) {
     </div>`).join('');
 }
 
-function renderTable(schedule) {
-  const tbody = document.getElementById('tableBody');
-  const tfoot = document.getElementById('tableFoot');
-  let tEmi=0, tPaid=0, tPrin=0, tInt=0, tAcc=0;
+function renderTable(sch, cfg) {
+  let tEmi=0,tPaid=0,tPrin=0,tInt=0,tAcc=0;
 
-  tbody.innerHTML = schedule.map(s => {
-    tEmi  += s.emiDue;
-    tPaid += s.paid;
-    tPrin += s.prinP;
-    tInt  += s.intP;
-    tAcc  += s.intAcc;
+  document.getElementById('tBody').innerHTML = sch.map(s => {
+    tEmi+=s.emiDue; tPaid+=s.paid; tPrin+=s.prinP; tInt+=s.intP; tAcc+=s.intAcc;
 
-    const cls = {paid:'row-paid',partial:'row-partial',missed:'row-missed',
-                 future:'',cancelled:'row-cancelled'}[s.status] || '';
+    const rowCls = {paid:'r-paid',partial:'r-partial',missed:'r-missed',
+                    future:'',cancelled:'r-cancelled'}[s.status]||'';
     const bdg = {
-      paid:      `<span class="badge bp">Paid</span>`,
-      partial:   `<span class="badge bpa">Partial</span>`,
-      missed:    `<span class="badge bm">Missed</span>`,
-      future:    `<span class="badge bf">Upcoming</span>`,
-      cancelled: `<span class="badge bc">Cancelled</span>`
-    }[s.status] || '';
+      paid:      `<span class="sbadge s-paid">Paid</span>`,
+      partial:   `<span class="sbadge s-part">Partial</span>`,
+      missed:    `<span class="sbadge s-miss">Missed</span>`,
+      future:    `<span class="sbadge s-future">Upcoming</span>`,
+      cancelled: `<span class="sbadge s-cancel">Cancelled</span>`
+    }[s.status]||'';
 
-    const pdFmt = s.payDate && !s.cancelled
+    const pdFmt = (s.payDate && !s.cancelled)
       ? new Date(s.payDate+'T00:00:00').toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})
-      : `<span class="zero">—</span>`;
+      : `<span class="z">—</span>`;
 
-    const txnFmt  = (s.txnNo && !s.cancelled) ? s.txnNo : `<span class="zero">—</span>`;
-    const paidFmt = s.paid>0
+    const txnFmt  = (s.txnNo && !s.cancelled) ? s.txnNo : `<span class="z">—</span>`;
+    const paidFmt = s.paid > 0
       ? `<span${s.cancelled?' style="text-decoration:line-through;color:var(--ink4)"':''}>${inr(s.paid)}</span>`
-      : `<span class="zero">—</span>`;
+      : `<span class="z">—</span>`;
 
-    const emiCls   = s.isFinal ? ' class="final-pay"' : '';
-    const cancelBtn = s.paid>0 && !s.cancelled
-      ? `<button class="btn-inline-cancel" onclick="inlineCancel(${s.month-1})" title="Cancel this payment">✕</button>`
-      : `<span class="zero" style="font-size:11px">&nbsp;</span>`;
+    const cancelBtn = (s.paid > 0 && !s.cancelled)
+      ? `<button class="btn-x" onclick="inlineCancel(${s.idx})" title="Cancel this payment">✕</button>`
+      : '';
 
-    return `<tr class="${cls}">
-      <td>${s.month}${s.isFinal ? ' <span style="color:var(--blue);font-size:9px">●</span>' : ''}</td>
-      <td>${fmtD(s.dueDate)}</td>
-      <td>${txnFmt}</td>
-      <td>${pdFmt}</td>
-      <td${emiCls}>${inr(s.emiDue)}</td>
+    const dueMark = s.isFinal ? `<span style="color:var(--blue);font-size:9px;margin-left:2px">●</span>` : '';
+
+    return `<tr class="${rowCls}">
+      <td>${s.month}${dueMark}</td>
+      <td>${fmtD(s.due)}</td>
+      <td class="lft">${txnFmt}</td>
+      <td class="lft">${pdFmt}</td>
+      <td>${inr(s.emiDue)}</td>
       <td>${paidFmt}</td>
-      <td>${s.prinP>0?inr(s.prinP):'<span class="zero">—</span>'}</td>
-      <td>${s.intP>0?inr(s.intP):'<span class="zero">—</span>'}</td>
-      <td class="outstanding">${inr(s.op)}</td>
-      <td class="${s.intAcc>0?'acc':''}">${s.intAcc>0?inr(s.intAcc):'<span class="zero">—</span>'}</td>
+      <td>${s.prinP>0?inr(s.prinP):'<span class="z">—</span>'}</td>
+      <td>${s.intP>0?inr(s.intP):'<span class="z">—</span>'}</td>
+      <td class="op">${inr(s.op)}</td>
+      <td class="${s.intAcc>0?'acc':''}">${s.intAcc>0?inr(s.intAcc):'<span class="z">—</span>'}</td>
       <td>${bdg}</td>
-      <td class="cancel-cell">${cancelBtn}</td>
+      <td style="text-align:center">${cancelBtn}</td>
     </tr>`;
   }).join('');
 
-  tfoot.innerHTML = `<tr>
+  document.getElementById('tFoot').innerHTML = `<tr>
     <td colspan="4">TOTALS</td>
     <td>${inr(tEmi)}</td>
     <td>${inr(tPaid)}</td>
@@ -705,68 +705,64 @@ function renderTable(schedule) {
   </tr>`;
 }
 
-// ── EXPORT CSV ─────────────────────────────────────────────────────────────
+/* ═══════════════════════════════════════════════════════════
+   EXPORT CSV
+═══════════════════════════════════════════════════════════ */
 function exportCSV() {
-  const schedule = compute();
-  const { P, r, n, sd } = getConfig();
+  const { P, r, n } = getCfg();
+  const sch   = compute();
   const today = new Date().toISOString().slice(0,10);
-  const lines = [];
-  lines.push(`"LOAN REPAYMENT LEDGER — Downloaded ${today}"`);
-  lines.push(`"Principal","Rs.${P.toLocaleString('en-IN')}"`);
-  lines.push(`"Monthly Rate","${(r*100).toFixed(2)}% (Simple Interest)"`);
-  lines.push(`"Fixed EMI","Rs.${FIXED_EMI.toLocaleString('en-IN')}"`);
-  lines.push(`"Start Date","${sd}"`);
-  lines.push(`"Tenure","${n} months (auto-calculated)"`);
-  lines.push('');
-  lines.push(['Month','Due Date','Txn No','Payment Date','EMI Due (INR)',
-    'Amount Paid (INR)','Principal Paid (INR)','Interest Paid (INR)',
-    'Outstanding Principal (INR)','Interest Accrued if Unpaid (INR)',
-    'Status','Notes'].join(','));
-
-  schedule.forEach(s => {
-    const note = s.cancelled ? (s.cancelReason||'Cancelled') : s.isFinal ? 'Final payment' : '';
-    lines.push([
-      s.month, `"${fmtD(s.dueDate)}"`, `"${s.txnNo||''}"`, `"${s.payDate||''}"`,
-      s.emiDue.toFixed(2), s.paid||0,
-      s.prinP.toFixed(2), s.intP.toFixed(2),
-      s.op.toFixed(2), s.intAcc.toFixed(2),
-      s.status, `"${note}"`
-    ].join(','));
+  const L = [];
+  L.push(`"LOAN REPAYMENT LEDGER — ${today}"`);
+  L.push(`"Principal","Rs.${P.toLocaleString('en-IN')}"`);
+  L.push(`"Rate","${(r*100).toFixed(2)}% p.m. (Simple Interest)"`);
+  L.push(`"Fixed EMI","Rs.${EMI.toLocaleString('en-IN')}"`);
+  L.push(`"Tenure","${n} months"`);
+  L.push('');
+  L.push(['Month','Due Date','Txn No','Payment Date','EMI Due','Amount Paid',
+          'Principal Paid','Interest Paid','Outstanding','Int Accrued if Unpaid','Status','Note'].join(','));
+  sch.forEach(s => {
+    const note = s.cancelled ? (rows[s.idx].cancelReason||'Cancelled') : s.isFinal ? 'Final payment' : '';
+    L.push([s.month, `"${fmtD(s.due)}"`, `"${s.txnNo||''}"`, `"${s.payDate||''}"`,
+            s.emiDue.toFixed(2), s.paid||0, s.prinP.toFixed(2), s.intP.toFixed(2),
+            s.op.toFixed(2), s.intAcc.toFixed(2), s.status, `"${note}"`].join(','));
   });
-
-  lines.push('');
-  const totPrin = schedule.reduce((a,s)=>a+s.prinP,0);
-  const totInt  = schedule.reduce((a,s)=>a+s.intP,0);
-  const totPaid = schedule.reduce((a,s)=>a+s.paid,0);
-  lines.push(`"SUMMARY"`);
-  lines.push(`"Total Amount Paid","${totPaid.toFixed(2)}"`);
-  lines.push(`"Total Principal Repaid","${totPrin.toFixed(2)}"`);
-  lines.push(`"Total Interest Paid","${totInt.toFixed(2)}"`);
-  lines.push(`"Latest Outstanding Principal","${schedule[n-1].op.toFixed(2)}"`);
-
-  const blob = new Blob([lines.join('\n')], { type:'text/csv;charset=utf-8;' });
+  L.push('');
+  const tPaid = sch.reduce((a,s)=>a+s.paid,0);
+  const tPrin = sch.reduce((a,s)=>a+s.prinP,0);
+  const tInt  = sch.reduce((a,s)=>a+s.intP,0);
+  L.push('"SUMMARY"');
+  L.push(`"Total Amount Paid","${tPaid.toFixed(2)}"`);
+  L.push(`"Total Principal Repaid","${tPrin.toFixed(2)}"`);
+  L.push(`"Total Interest Paid","${tInt.toFixed(2)}"`);
+  L.push(`"Outstanding Principal","${sch[n-1].op.toFixed(2)}"`);
+  const blob = new Blob([L.join('\n')], {type:'text/csv;charset=utf-8;'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = `LoanLedger_${today}.csv`;
   a.click();
 }
 
-// ── RESET ──────────────────────────────────────────────────────────────────
-function clearAll() {
-  if (!confirm('Reset ALL payment entries? This will permanently delete all recorded payments and cannot be undone.')) return;
-  rows.forEach(r => { r.txnNo=''; r.payDate=''; r.amtPaid=''; r.cancelled=false; r.cancelReason=''; });
-  try { localStorage.removeItem(STORAGE_KEY); } catch(e) {}
+/* ═══════════════════════════════════════════════════════════
+   RESET ALL
+═══════════════════════════════════════════════════════════ */
+function resetAll() {
+  if (!confirm('Reset ALL payment entries?\nThis permanently clears all recorded payments and cannot be undone.')) return;
+  rows = [];
+  try { localStorage.removeItem(STORE_KEY); } catch(e) {}
   render();
 }
 
-// ── LISTENERS ──────────────────────────────────────────────────────────────
-['principal','rate'].forEach(id => {
-  document.getElementById(id).addEventListener('input', () => { render(); });
-});
+/* ═══════════════════════════════════════════════════════════
+   LISTENERS & BOOT
+═══════════════════════════════════════════════════════════ */
+document.getElementById('cfgPrincipal').addEventListener('input', render);
+document.getElementById('cfgRate').addEventListener('input', render);
 
-// ── BOOT ───────────────────────────────────────────────────────────────────
-loadFromStorage();   // restore saved payment data
-render();
+// ── BOOT ──────────────────────────────────────────────────
+load();   // restore from localStorage FIRST
+render(); // then draw
 </script>
+
 </body>
 </html>
